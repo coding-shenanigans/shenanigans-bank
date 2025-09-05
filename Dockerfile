@@ -1,5 +1,5 @@
-# Build stage using an Ubuntu 24.04 image with JDK 21
-FROM eclipse-temurin:21-jdk-noble AS build
+# Build stage using an image with JDK 21
+FROM eclipse-temurin:21-jdk-alpine AS build
 
 # Switch to the working directory
 WORKDIR /opt/app
@@ -13,8 +13,8 @@ COPY src/ ./src/
 # Build the jar file
 RUN ./mvnw clean package
 
-# Final stage using an Ubuntu 24.04 image with JRE 21
-FROM eclipse-temurin:21-jdk-noble AS final
+# Final stage using an image with JRE 21
+FROM eclipse-temurin:21-jre-alpine AS final
 
 # Switch to the working directory
 WORKDIR /opt/app
