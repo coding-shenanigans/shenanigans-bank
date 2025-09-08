@@ -4,6 +4,7 @@ import com.codingshenanigans.shenanigans_bank.dtos.SignupRequest;
 import com.codingshenanigans.shenanigans_bank.dtos.SignupResponse;
 import com.codingshenanigans.shenanigans_bank.models.Session;
 import com.codingshenanigans.shenanigans_bank.services.AuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
-
     private final AuthService authService;
 
     @Autowired
@@ -26,16 +26,17 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
-        String firstName = request.getFirstName();
-        String lastName = request.getLastName();
-        String email = request.getEmail();
-        String password = request.getPassword();
-
-        Session session = authService.signup(firstName, lastName, email, password);
+        Session session = authService.signup(
+                request.getFirstName(),
+                request.getLastName(),
+                request.getEmail(),
+                request.getPassword()
+        );
 
         // TODO: add cookie with refresh token
 
         SignupResponse response = new SignupResponse(session);
+
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 }

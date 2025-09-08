@@ -14,18 +14,21 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException e) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(
+            MethodArgumentNotValidException e
+    ) {
         List<String> errors = new ArrayList<>();
-        e.getBindingResult().getFieldErrors().forEach(error -> errors.add(error.getDefaultMessage()));
+        e.getBindingResult().getFieldErrors().forEach(
+                error -> errors.add(error.getDefaultMessage())
+        );
         ErrorResponse response = new ErrorResponse(errors);
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ResourceConflictException.class)
-    public ResponseEntity<ErrorResponse> handleResourceConflictExceptions(ResourceConflictException e) {
-        List<String> errors = new ArrayList<>();
-        errors.add(e.getMessage());
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApiExceptions(ApiException e) {
+        List<String> errors = List.of(e.getMessage());
         ErrorResponse response = new ErrorResponse(errors);
-        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(response, e.getStatus());
     }
 }

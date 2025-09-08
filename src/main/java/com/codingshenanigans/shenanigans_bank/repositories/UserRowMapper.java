@@ -1,0 +1,28 @@
+package com.codingshenanigans.shenanigans_bank.repositories;
+
+import com.codingshenanigans.shenanigans_bank.models.User;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.stereotype.Component;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Calendar;
+import java.util.TimeZone;
+
+@Component
+public class UserRowMapper implements RowMapper<User> {
+    private static final Calendar UTC_CALENDAR = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+
+    @Override
+    public User mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new User(
+                rs.getLong("id"),
+                rs.getString("first_name"),
+                rs.getString("last_name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getTimestamp("created_at", UTC_CALENDAR).toInstant(),
+                rs.getTimestamp("updated_at", UTC_CALENDAR).toInstant()
+        );
+    }
+}

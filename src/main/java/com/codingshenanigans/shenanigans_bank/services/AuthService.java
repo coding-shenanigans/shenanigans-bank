@@ -1,35 +1,36 @@
 package com.codingshenanigans.shenanigans_bank.services;
 
-import com.codingshenanigans.shenanigans_bank.exceptions.ResourceConflictException;
+import com.codingshenanigans.shenanigans_bank.exceptions.ApiException;
 import com.codingshenanigans.shenanigans_bank.models.Session;
 import com.codingshenanigans.shenanigans_bank.models.User;
 import com.codingshenanigans.shenanigans_bank.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public Session signup(String firstName, String lastName, String email, String password) {
         if (userRepository.emailExists(email)) {
             String errorMessage = String.format("The email %s already exists", email);
-            throw new ResourceConflictException(errorMessage);
+            throw new ApiException(errorMessage, HttpStatus.CONFLICT);
         }
 
-        // TODO: hash password
-        // TODO: add new user to database
-        User user = new User(firstName, lastName, email, password);
-        userRepository.createUser(user);
-        // TODO: generate access and refresh tokens
-        // TODO: return session object
+        String hashedPassword = passwordEncoder.encode(password);
+        User user = userRepository.create(firstName, lastName, email, hashedPassword);
 
-        return null;
+        // TODO: generate access and refresh tokens
+
+        return new Session(user, "", "");
     }
 }
