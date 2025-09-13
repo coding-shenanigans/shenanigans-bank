@@ -2,7 +2,7 @@ package com.codingshenanigans.shenanigans_bank.controllers;
 
 import com.codingshenanigans.shenanigans_bank.dtos.SignupRequest;
 import com.codingshenanigans.shenanigans_bank.dtos.SignupResponse;
-import com.codingshenanigans.shenanigans_bank.models.Session;
+import com.codingshenanigans.shenanigans_bank.dtos.UserSession;
 import com.codingshenanigans.shenanigans_bank.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -25,17 +25,18 @@ public class AuthController {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest request) {
-        Session session = authService.signup(
+    public ResponseEntity<SignupResponse> signup(
+            @Valid @RequestBody SignupRequest request, HttpServletResponse servletResponse
+    ) {
+        UserSession userSession = authService.signup(
                 request.getFirstName(),
                 request.getLastName(),
                 request.getEmail(),
                 request.getPassword()
         );
 
-        // TODO: add cookie with refresh token
-
-        SignupResponse response = new SignupResponse(session);
+        servletResponse.addCookie(userSession.getRefreshTokenCookie());
+        SignupResponse response = new SignupResponse(userSession);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }

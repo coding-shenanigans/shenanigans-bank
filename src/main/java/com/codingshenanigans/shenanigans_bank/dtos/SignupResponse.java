@@ -1,19 +1,17 @@
 package com.codingshenanigans.shenanigans_bank.dtos;
 
-import com.codingshenanigans.shenanigans_bank.models.Session;
-
 public class SignupResponse {
-    private Session session;
+    private UserSession userSession;
 
-    public SignupResponse(Session session) {
-        this.session = session;
+    public SignupResponse(UserSession userSession) {
+        this.userSession = userSession;
     }
 
-    public Session getSession() {
-        return session;
+    public UserSession getUserSession() {
+        return userSession;
     }
 
-    public void setSession(Session session) {
-        this.session = session;
+    public void setUserSession(UserSession userSession) {
+        this.userSession = userSession;
     }
 }

@@ -69,9 +69,14 @@ CREATE TABLE IF NOT EXISTS transactions (
 
 ## Run Locally with Docker
 
-Build a docker image:
+Build a docker image for local dev:
 ```bash
 docker build -t shenanigans-bank:v0.0.1 .
+```
+
+Build a docker image for prod:
+```bash
+docker build --build-arg SPRING_PROFILE=prod -t shenanigans-bank:v0.0.1 .
 ```
 
 Run a docker container:
