@@ -31,5 +31,3 @@ EXPOSE 8080
 
 # Run the app
 ENTRYPOINT ["java", "-jar", "/opt/app.jar"]
-
-# TODO: create jar using the prod spring profile
