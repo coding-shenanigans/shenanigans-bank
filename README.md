@@ -1,5 +1,9 @@
 # Shenanigans Bank
 
+An API implementation that simulates the basic functionalities of a bank.
+
+Design doc: https://docs.google.com/document/d/1IHVJ3YjF0wK9xh3exj78S7IKIXNZAvfz0QVVmE5itGI
+
 ## Local MySQL with Docker
 
 Create a local MySQL docker container:
@@ -76,7 +80,7 @@ docker build -t shenanigans-bank:v0.0.1 .
 
 Build a docker image for prod:
 ```bash
-docker build --build-arg SPRING_PROFILE=prod -t shenanigans-bank:v0.0.1 .
+docker build --build-arg SPRING_PROFILE=prod -t us-central1-docker.pkg.dev/shenanigans-bank/images/shenanigans-bank:v0.0.1 .
 ```
 
 Run a docker container:

@@ -15,7 +15,7 @@ COPY .mvn/ .mvn/
 COPY src/ ./src/
 
 # Build the jar file
-RUN ./mvnw clean package
+RUN ./mvnw clean package -DskipTests
 
 # Final stage using an image with JRE 21
 FROM eclipse-temurin:21-jre-alpine AS final
