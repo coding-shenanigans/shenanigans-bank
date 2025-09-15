@@ -83,6 +83,11 @@ Build a docker image for prod:
 docker build --build-arg SPRING_PROFILE=prod -t us-central1-docker.pkg.dev/shenanigans-bank/images/shenanigans-bank:v0.0.1 .
 ```
 
+Push a docker image to prod:
+```bash
+docker push us-central1-docker.pkg.dev/shenanigans-bank/images/shenanigans-bank:v0.0.1
+```
+
 Run a docker container:
 ```bash
 docker run --name shenanigans-bank -p 8080:8080 shenanigans-bank:v0.0.1

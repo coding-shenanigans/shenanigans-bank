@@ -23,7 +23,7 @@ public class SignupRequest {
     @Pattern(regexp = ".*[a-z].*", message = "The password should have at least 1 lower case letter")
     @Pattern(regexp = ".*[A-Z].*", message = "The password should have at least 1 upper case letter")
     @Pattern(regexp = ".*[0-9].*", message = "The password should have at least 1 number")
-    @Pattern(regexp = ".*[^a-zA-Z0-9].*", message = "The password should have at least 1 special character")
+    @Pattern(regexp = ".*[^a-zA-Z0-9].*", message = "The password should have at least 1 non-alphanumeric character")
     private String password;
 
     public SignupRequest(String firstName, String lastName, String email, String password) {
