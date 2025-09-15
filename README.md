@@ -80,7 +80,7 @@ docker build -t shenanigans-bank:v0.0.1 .
 
 Build a docker image for prod:
 ```bash
-docker build --build-arg SPRING_PROFILE=prod -t us-central1-docker.pkg.dev/shenanigans-bank/images/shenanigans-bank:v0.0.1 .
+docker build -t us-central1-docker.pkg.dev/shenanigans-bank/images/shenanigans-bank:v0.0.1 .
 ```
 
 Push a docker image to prod:

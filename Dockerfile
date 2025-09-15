@@ -4,10 +4,6 @@ FROM eclipse-temurin:21-jdk-alpine AS build
 # Switch to the working directory
 WORKDIR /opt/app
 
-# Set spring profiles build argument
-ARG SPRING_PROFILE
-ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILE}
-
 # Copy files
 COPY pom.xml ./
 COPY mvnw ./
