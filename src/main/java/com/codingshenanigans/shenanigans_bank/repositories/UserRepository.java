@@ -24,21 +24,6 @@ public class UserRepository {
     }
 
     /**
-     * Checks if a user with the given email already exists in the database.
-     * @param email The email to check.
-     * @return true if a user with the email exists, false otherwise.
-     */
-    public boolean emailExists(String email) {
-        String query = """
-            SELECT COUNT(*)
-            FROM users
-            WHERE email = ?
-        """;
-        Integer count = jdbcTemplate.queryForObject(query, Integer.class, email);
-        return count != null && count > 0;
-    }
-
-    /**
      * Creates a new user in the database.
      * @param firstName The user's first name.
      * @param lastName The user's last name.
@@ -82,11 +67,34 @@ public class UserRepository {
             SELECT *
             FROM users
             WHERE id = ?
+            LIMIT 1
         """;
 
         try {
             return jdbcTemplate.queryForObject(query, userRowMapper, id);
         } catch(Exception e) {
+            // TODO: log error
+            return null;
+        }
+    }
+
+    /**
+     * Finds a user by their email.
+     * @param email The email to search for.
+     * @return The user object if found, null otherwise.
+     */
+    public User findByEmail(String email) {
+        String query = """
+            SELECT *
+            FROM users
+            WHERE email = ?
+            LIMIT 1
+        """;
+
+        try {
+            return jdbcTemplate.queryForObject(query, userRowMapper, email);
+        } catch(Exception e) {
+            // TODO: log error
             return null;
         }
     }
