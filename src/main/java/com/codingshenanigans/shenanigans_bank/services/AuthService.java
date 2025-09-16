@@ -34,13 +34,36 @@ public class AuthService {
     }
 
     public UserSession signup(String firstName, String lastName, String email, String password) {
-        if (userRepository.emailExists(email)) {
+        if (userRepository.findByEmail(email) != null) {
             String errorMessage = String.format("The email %s already exists", email);
             throw new ApiException(errorMessage, HttpStatus.CONFLICT);
         }
 
         String hashedPassword = passwordEncoder.encode(password);
         User user = userRepository.create(firstName, lastName, email, hashedPassword);
+
+        AuthToken accessToken = tokenProvider.generateAccessToken(user.id());
+        AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());
+
+        sessionRepository.create(user.id(), refreshToken.getToken());
+        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
+
+        return new UserSession(
+                user.firstName(),
+                user.lastName(),
+                user.email(),
+                accessToken.getToken(),
+                accessToken.getDurationSecs(),
+                refreshTokenCookie
+        );
+    }
+
+    public UserSession signin(String email, String password) {
+        User user = userRepository.findByEmail(email);
+
+        if (user == null || !passwordEncoder.matches(password, user.password())) {
+            throw new ApiException("Invalid email or password", HttpStatus.UNAUTHORIZED);
+        }
 
         AuthToken accessToken = tokenProvider.generateAccessToken(user.id());
         AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());

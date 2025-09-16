@@ -1,8 +1,6 @@
 package com.codingshenanigans.shenanigans_bank.controllers;
 
-import com.codingshenanigans.shenanigans_bank.dtos.SignupRequest;
-import com.codingshenanigans.shenanigans_bank.dtos.SignupResponse;
-import com.codingshenanigans.shenanigans_bank.dtos.UserSession;
+import com.codingshenanigans.shenanigans_bank.dtos.*;
 import com.codingshenanigans.shenanigans_bank.services.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -39,5 +37,17 @@ public class AuthController {
         SignupResponse response = new SignupResponse(userSession);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/signin")
+    public ResponseEntity<SigninResponse> signin(
+            @Valid @RequestBody SigninRequest request, HttpServletResponse servletResponse
+    ) {
+        UserSession userSession = authService.signin(request.getEmail(), request.getPassword());
+
+        servletResponse.addCookie(userSession.getRefreshTokenCookie());
+        SigninResponse response = new SigninResponse(userSession);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }
