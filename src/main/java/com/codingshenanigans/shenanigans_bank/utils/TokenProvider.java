@@ -41,7 +41,7 @@ public class TokenProvider {
      */
     public AuthToken generateAccessToken(long userId) {
         return generateToken(
-                userId, accessTokenSecret, accessTokenDurationSecs, Constants.ACCESS_KEY_ID
+                userId, accessTokenSecret, accessTokenDurationSecs, Constants.ACCESS_TOKEN_KEY_ID
         );
     }
 
@@ -52,7 +52,7 @@ public class TokenProvider {
      */
     public AuthToken generateRefreshToken(long userId) {
         return generateToken(
-                userId, refreshTokenSecret, refreshTokenDurationSecs, Constants.REFRESH_KEY_ID
+                userId, refreshTokenSecret, refreshTokenDurationSecs, Constants.REFRESH_TOKEN_KEY_ID
         );
     }
 
