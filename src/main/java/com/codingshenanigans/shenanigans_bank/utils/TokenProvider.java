@@ -25,8 +25,6 @@ public class TokenProvider {
     private String refreshTokenSecret;
     @Value("${security.refresh-token.duration-secs}")
     private int refreshTokenDurationSecs;
-    @Value("${security.refresh-token.cookie.name}")
-    private String refreshTokenCookieName;
     @Value("${security.refresh-token.cookie.http-only}")
     private boolean refreshTokenCookieHttpOnly;
     @Value("${security.refresh-token.cookie.secure}")
@@ -42,18 +40,9 @@ public class TokenProvider {
      * @return An auth token object containing the new access token.
      */
     public AuthToken generateAccessToken(long userId) {
-        Key key = Keys.hmacShaKeyFor(accessTokenSecret.getBytes(StandardCharsets.UTF_8));
-        Instant issuedTime = Instant.now();
-        Instant expirationTime = issuedTime.plus(Duration.ofSeconds(accessTokenDurationSecs));
-
-        String accessToken = Jwts.builder()
-                .setHeaderParam(JwsHeader.KEY_ID, Constants.ACCESS)
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(Date.from(issuedTime))
-                .setExpiration(Date.from(expirationTime))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-        return new AuthToken(accessToken, accessTokenDurationSecs);
+        return generateToken(
+                userId, accessTokenSecret, accessTokenDurationSecs, Constants.ACCESS_KEY_ID
+        );
     }
 
     /**
@@ -62,18 +51,9 @@ public class TokenProvider {
      * @return An auth token object containing the new refresh token.
      */
     public AuthToken generateRefreshToken(long userId) {
-        Key key = Keys.hmacShaKeyFor(refreshTokenSecret.getBytes(StandardCharsets.UTF_8));
-        Instant issuedTime = Instant.now();
-        Instant expirationTime = issuedTime.plus(Duration.ofSeconds(refreshTokenDurationSecs));
-
-        String refreshToken = Jwts.builder()
-                .setHeaderParam(JwsHeader.KEY_ID, Constants.REFRESH)
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(Date.from(issuedTime))
-                .setExpiration(Date.from(expirationTime))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-        return new AuthToken(refreshToken, refreshTokenDurationSecs);
+        return generateToken(
+                userId, refreshTokenSecret, refreshTokenDurationSecs, Constants.REFRESH_KEY_ID
+        );
     }
 
     /**
@@ -82,12 +62,35 @@ public class TokenProvider {
      * @return A cookie object containing the refresh token.
      */
     public Cookie createRefreshTokenCookie(String refreshToken) {
-        Cookie refreshTokenCookie = new Cookie(refreshTokenCookieName, refreshToken);
+        Cookie refreshTokenCookie = new Cookie(Constants.REFRESH_TOKEN_COOKIE_NAME, refreshToken);
         refreshTokenCookie.setMaxAge(refreshTokenDurationSecs);
         refreshTokenCookie.setHttpOnly(refreshTokenCookieHttpOnly);
         refreshTokenCookie.setSecure(refreshTokenCookieSecure);
         refreshTokenCookie.setDomain(refreshTokenCookieDomain);
         refreshTokenCookie.setPath(refreshTokenCookiePath);
         return refreshTokenCookie;
+    }
+
+    /**
+     * Generates a JWT token.
+     * @param userId The user id to issue the token to.
+     * @param secretKey The secret key used to sign the token.
+     * @param durationSecs The token's duration in seconds.
+     * @param keyId The secret key's id.
+     * @return An auth token object containing the new JWT token.
+     */
+    private AuthToken generateToken(long userId, String secretKey, int durationSecs, String keyId) {
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        Instant issuedTime = Instant.now();
+        Instant expirationTime = issuedTime.plus(Duration.ofSeconds(durationSecs));
+
+        String refreshToken = Jwts.builder()
+                .setHeaderParam(JwsHeader.KEY_ID, keyId)
+                .setSubject(String.valueOf(userId))
+                .setIssuedAt(Date.from(issuedTime))
+                .setExpiration(Date.from(expirationTime))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+        return new AuthToken(refreshToken, durationSecs);
     }
 }
