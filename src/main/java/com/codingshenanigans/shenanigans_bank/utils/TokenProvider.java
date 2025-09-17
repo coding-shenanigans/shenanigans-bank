@@ -84,13 +84,13 @@ public class TokenProvider {
         Instant issuedTime = Instant.now();
         Instant expirationTime = issuedTime.plus(Duration.ofSeconds(durationSecs));
 
-        String refreshToken = Jwts.builder()
+        String token = Jwts.builder()
                 .setHeaderParam(JwsHeader.KEY_ID, keyId)
                 .setSubject(String.valueOf(userId))
                 .setIssuedAt(Date.from(issuedTime))
                 .setExpiration(Date.from(expirationTime))
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
-        return new AuthToken(refreshToken, durationSecs);
+        return new AuthToken(token, durationSecs);
     }
 }
