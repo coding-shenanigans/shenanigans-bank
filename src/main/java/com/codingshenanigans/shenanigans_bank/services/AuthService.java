@@ -47,7 +47,6 @@ public class AuthService {
         AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());
 
         sessionRepository.create(user.id(), refreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
 
         return new UserSession(
                 user.firstName(),
@@ -55,7 +54,7 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                refreshToken.getToken()
         );
     }
 
@@ -70,7 +69,6 @@ public class AuthService {
         AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());
 
         sessionRepository.create(user.id(), refreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
 
         return new UserSession(
                 user.firstName(),
@@ -78,7 +76,7 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                refreshToken.getToken()
         );
     }
 
@@ -101,9 +99,6 @@ public class AuthService {
         AuthToken newRefreshToken = tokenProvider.generateRefreshToken(session.userId());
 
         sessionRepository.updateRefreshToken(session.id(), newRefreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(
-                newRefreshToken.getToken()
-        );
 
         return new UserSession(
                 user.firstName(),
@@ -111,7 +106,11 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                newRefreshToken.getToken()
         );
+    }
+
+    public void signout(String refreshToken) {
+        sessionRepository.delete(refreshToken);
     }
 }

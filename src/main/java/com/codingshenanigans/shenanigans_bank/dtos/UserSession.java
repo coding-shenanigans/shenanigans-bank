@@ -1,7 +1,6 @@
 package com.codingshenanigans.shenanigans_bank.dtos;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.servlet.http.Cookie;
 
 public class UserSession {
     private String firstName;
@@ -11,7 +10,7 @@ public class UserSession {
     private Integer durationSecs;
 
     @JsonIgnore
-    private Cookie refreshTokenCookie;
+    private String refreshToken;
 
     public UserSession(
             String firstName,
@@ -19,14 +18,14 @@ public class UserSession {
             String email,
             String accessToken,
             Integer durationSecs,
-            Cookie refreshTokenCookie
+            String refreshToken
     ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.accessToken = accessToken;
         this.durationSecs = durationSecs;
-        this.refreshTokenCookie = refreshTokenCookie;
+        this.refreshToken = refreshToken;
     }
 
     public String getFirstName() {
@@ -69,11 +68,11 @@ public class UserSession {
         this.durationSecs = durationSecs;
     }
 
-    public Cookie getRefreshTokenCookie() {
-        return refreshTokenCookie;
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
-    public void setRefreshTokenCookie(Cookie refreshTokenCookie) {
-        this.refreshTokenCookie = refreshTokenCookie;
+    public void setRefreshTokenCookie(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 }
