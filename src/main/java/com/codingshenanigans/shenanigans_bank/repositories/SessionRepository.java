@@ -93,18 +93,18 @@ public class SessionRepository {
     }
 
     /**
-     * Deletes a session by its refresh token.
-     * @param refreshToken The refresh token to delete.
+     * Deletes a session.
+     * @param id The session's id.
      */
-    public void delete(String refreshToken) {
+    public void delete(Long id) {
         String query = """
             DELETE FROM sessions
-            WHERE refresh_token = ?
+            WHERE id = ?
         """;
 
-        int rowsAffected = jdbcTemplate.update(query, refreshToken);
+        int rowsAffected = jdbcTemplate.update(query, id);
         if (rowsAffected <= 0) {
-            throw new ApiException("", HttpStatus.UNAUTHORIZED);
+            throw new ApiException("Failed to delete session", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
