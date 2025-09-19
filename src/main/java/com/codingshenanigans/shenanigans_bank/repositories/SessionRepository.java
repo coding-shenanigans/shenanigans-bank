@@ -75,7 +75,7 @@ public class SessionRepository {
     }
 
     /**
-     * Updates the session's refresh token and returns the updated object.
+     * Updates the session's refresh token.
      * @param id The session's id.
      * @param refreshToken The new refresh token value.
      */
