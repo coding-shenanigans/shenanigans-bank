@@ -1,16 +1,14 @@
 package com.codingshenanigans.shenanigans_bank.utils;
 
 import com.codingshenanigans.shenanigans_bank.dtos.AuthToken;
-import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -72,6 +70,24 @@ public class TokenProvider {
     }
 
     /**
+     * Validates the access token and returns its claims.
+     * @param accessToken The access token.
+     * @return A claims object if the access token is valid, null otherwise.
+     */
+    public Claims validateAccessToken(String accessToken) {
+        return validateToken(accessToken, accessTokenSecret);
+    }
+
+    /**
+     * Validates the refresh token and returns its claims.
+     * @param refreshToken The refresh token.
+     * @return A claims object if the refresh token is valid, null otherwise.
+     */
+    public Claims validateRefreshToken(String refreshToken) {
+        return validateToken(refreshToken, refreshTokenSecret);
+    }
+
+    /**
      * Generates a JWT token.
      * @param userId The user id to issue the token to.
      * @param secretKey The secret key used to sign the token.
@@ -80,17 +96,40 @@ public class TokenProvider {
      * @return An auth token object containing the new JWT token.
      */
     private AuthToken generateToken(long userId, String secretKey, int durationSecs, String keyId) {
-        Key key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
         Instant issuedTime = Instant.now();
         Instant expirationTime = issuedTime.plus(Duration.ofSeconds(durationSecs));
 
         String token = Jwts.builder()
-                .setHeaderParam(JwsHeader.KEY_ID, keyId)
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(Date.from(issuedTime))
-                .setExpiration(Date.from(expirationTime))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .header()
+                    .keyId(keyId)
+                    .and()  // return to the JwtBuilder
+                .subject(String.valueOf(userId))
+                .issuedAt(Date.from(issuedTime))
+                .expiration(Date.from(expirationTime))
+                .signWith(key)
                 .compact();
         return new AuthToken(token, durationSecs);
+    }
+
+    /**
+     * Validates the JWT token and returns its claims.
+     * @param token The JWT token to parse.
+     * @param secretKey The secret key to validate the token with.
+     * @return A claims object if the token is valid, null otherwise.
+     */
+    private Claims validateToken(String token, String secretKey) {
+        try {
+            SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes());
+
+            return Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            // TODO: log error
+            return null;
+        }
     }
 }

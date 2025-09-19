@@ -2,15 +2,13 @@ package com.codingshenanigans.shenanigans_bank.controllers;
 
 import com.codingshenanigans.shenanigans_bank.dtos.*;
 import com.codingshenanigans.shenanigans_bank.services.AuthService;
+import com.codingshenanigans.shenanigans_bank.utils.Constants;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -47,6 +45,20 @@ public class AuthController {
 
         servletResponse.addCookie(userSession.getRefreshTokenCookie());
         SigninResponse response = new SigninResponse(userSession);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(
+            @CookieValue(name = Constants.REFRESH_TOKEN_COOKIE_NAME, required = false)
+            String refreshToken,
+            HttpServletResponse servletResponse
+    ) {
+        UserSession userSession = authService.refresh(refreshToken);
+
+        servletResponse.addCookie(userSession.getRefreshTokenCookie());
+        RefreshResponse response = new RefreshResponse(userSession);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

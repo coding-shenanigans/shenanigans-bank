@@ -3,6 +3,7 @@ package com.codingshenanigans.shenanigans_bank.services;
 import com.codingshenanigans.shenanigans_bank.dtos.AuthToken;
 import com.codingshenanigans.shenanigans_bank.dtos.UserSession;
 import com.codingshenanigans.shenanigans_bank.exceptions.ApiException;
+import com.codingshenanigans.shenanigans_bank.models.Session;
 import com.codingshenanigans.shenanigans_bank.models.User;
 import com.codingshenanigans.shenanigans_bank.repositories.SessionRepository;
 import com.codingshenanigans.shenanigans_bank.repositories.UserRepository;
@@ -70,6 +71,39 @@ public class AuthService {
 
         sessionRepository.create(user.id(), refreshToken.getToken());
         Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
+
+        return new UserSession(
+                user.firstName(),
+                user.lastName(),
+                user.email(),
+                accessToken.getToken(),
+                accessToken.getDurationSecs(),
+                refreshTokenCookie
+        );
+    }
+
+    public UserSession refresh(String refreshToken) {
+        if (tokenProvider.validateRefreshToken(refreshToken) == null) {
+            throw new ApiException("The refresh token is not valid", HttpStatus.UNAUTHORIZED);
+        }
+
+        Session session = sessionRepository.findByRefreshToken(refreshToken);
+        if (session == null) {
+            throw new ApiException("The session was not found", HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = userRepository.findById(session.userId());
+        if (user == null) {
+            throw new ApiException("The session's owner was not found", HttpStatus.UNAUTHORIZED);
+        }
+
+        AuthToken accessToken = tokenProvider.generateAccessToken(session.userId());
+        AuthToken newRefreshToken = tokenProvider.generateRefreshToken(session.userId());
+
+        sessionRepository.updateRefreshToken(session.id(), newRefreshToken.getToken());
+        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(
+                newRefreshToken.getToken()
+        );
 
         return new UserSession(
                 user.firstName(),
