@@ -8,7 +8,6 @@ import com.codingshenanigans.shenanigans_bank.models.User;
 import com.codingshenanigans.shenanigans_bank.repositories.SessionRepository;
 import com.codingshenanigans.shenanigans_bank.repositories.UserRepository;
 import com.codingshenanigans.shenanigans_bank.utils.TokenProvider;
-import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +46,6 @@ public class AuthService {
         AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());
 
         sessionRepository.create(user.id(), refreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
 
         return new UserSession(
                 user.firstName(),
@@ -55,7 +53,7 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                refreshToken.getToken()
         );
     }
 
@@ -70,7 +68,6 @@ public class AuthService {
         AuthToken refreshToken = tokenProvider.generateRefreshToken(user.id());
 
         sessionRepository.create(user.id(), refreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(refreshToken.getToken());
 
         return new UserSession(
                 user.firstName(),
@@ -78,7 +75,7 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                refreshToken.getToken()
         );
     }
 
@@ -89,21 +86,18 @@ public class AuthService {
 
         Session session = sessionRepository.findByRefreshToken(refreshToken);
         if (session == null) {
-            throw new ApiException("The session was not found", HttpStatus.UNAUTHORIZED);
+            throw new ApiException("The session was not found", HttpStatus.NOT_FOUND);
         }
 
         User user = userRepository.findById(session.userId());
         if (user == null) {
-            throw new ApiException("The session's owner was not found", HttpStatus.UNAUTHORIZED);
+            throw new ApiException("The session's owner was not found", HttpStatus.NOT_FOUND);
         }
 
         AuthToken accessToken = tokenProvider.generateAccessToken(session.userId());
         AuthToken newRefreshToken = tokenProvider.generateRefreshToken(session.userId());
 
         sessionRepository.updateRefreshToken(session.id(), newRefreshToken.getToken());
-        Cookie refreshTokenCookie = tokenProvider.createRefreshTokenCookie(
-                newRefreshToken.getToken()
-        );
 
         return new UserSession(
                 user.firstName(),
@@ -111,7 +105,16 @@ public class AuthService {
                 user.email(),
                 accessToken.getToken(),
                 accessToken.getDurationSecs(),
-                refreshTokenCookie
+                newRefreshToken.getToken()
         );
+    }
+
+    public void signout(String refreshToken) {
+        Session session = sessionRepository.findByRefreshToken(refreshToken);
+        if (session == null) {
+            throw new ApiException("The session was not found", HttpStatus.NOT_FOUND);
+        }
+
+        sessionRepository.delete(session.id());
     }
 }

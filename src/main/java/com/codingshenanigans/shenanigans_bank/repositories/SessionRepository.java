@@ -91,4 +91,20 @@ public class SessionRepository {
             throw new ApiException("Failed to update session", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Deletes a session.
+     * @param id The session's id.
+     */
+    public void delete(Long id) {
+        String query = """
+            DELETE FROM sessions
+            WHERE id = ?
+        """;
+
+        int rowsAffected = jdbcTemplate.update(query, id);
+        if (rowsAffected <= 0) {
+            throw new ApiException("Failed to delete session", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
