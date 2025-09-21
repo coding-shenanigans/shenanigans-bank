@@ -1,13 +1,14 @@
 package com.codingshenanigans.shenanigans_bank.models;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
-public record User(
+public record Account(
         Long id,
-        String firstName,
-        String lastName,
-        String email,
-        String password,
+        Long userId,
+        BigDecimal balance,
+        AccountType type,
+        AccountStatus status,
         Instant createdAt,
         Instant updatedAt
 ) {}

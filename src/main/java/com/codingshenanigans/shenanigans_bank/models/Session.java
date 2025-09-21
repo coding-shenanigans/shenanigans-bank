@@ -8,5 +8,4 @@ public record Session(
         String refreshToken,
         Instant createdAt,
         Instant updatedAt
-) {
-}
+) {}
