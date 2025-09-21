@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 public class OpenAccountRequest {
     @NotNull(message = "The balance is required")
-    @DecimalMin(value = "0", message = "The balance cannot be negative")
+    @DecimalMin(value = "0", message = "The initial balance cannot be negative")
     private BigDecimal balance;
 
     @NotNull(message = "The account type is required")
