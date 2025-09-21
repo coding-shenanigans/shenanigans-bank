@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 
 @Repository
 public class AccountRepository {
@@ -77,5 +78,15 @@ public class AccountRepository {
             // TODO: log error
             return null;
         }
+    }
+
+    public List<Account> list(Long userId) {
+        String query = """
+            SELECT *
+            FROM accounts
+            WHERE user_id = ?
+        """;
+
+        return jdbcTemplate.query(query, accountRowMapper, userId);
     }
 }
