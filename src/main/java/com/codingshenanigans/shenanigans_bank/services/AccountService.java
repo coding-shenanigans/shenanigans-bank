@@ -134,4 +134,40 @@ public class AccountService {
 
         return accountRepository.findById(accountId);
     }
+
+    public Account deposit(
+            String authorizationHeader, Long accountId, String title, BigDecimal amount
+    ) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ApiException("Invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accessToken = authorizationHeader.substring(7);
+        Claims claims = tokenProvider.validateAccessToken(accessToken);
+        if (claims == null) {
+            throw new ApiException("Invalid access token", HttpStatus.UNAUTHORIZED);
+        }
+
+        Account account = accountRepository.findById(accountId);
+        if (account == null) {
+            throw new ApiException("The account was not found", HttpStatus.NOT_FOUND);
+        }
+
+        long userId;
+        try {
+            userId = Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new ApiException(
+                    "Failed to parse subject claim", HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        if (userId != account.userId()) {
+            throw new ApiException(
+                    "The user signed in does not own the account", HttpStatus.FORBIDDEN
+            );
+        }
+
+        return accountRepository.deposit(accountId, title, amount);
+    }
 }
