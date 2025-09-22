@@ -80,6 +80,11 @@ public class AccountRepository {
         }
     }
 
+    /**
+     * Closes the account with the given id.
+     * @param accountId The account id to close.
+     * @return The updated account object.
+     */
     public Account close(Long accountId) {
         String query = """
             UPDATE accounts
