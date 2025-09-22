@@ -4,7 +4,9 @@ import com.codingshenanigans.shenanigans_bank.exceptions.ApiException;
 import com.codingshenanigans.shenanigans_bank.models.Account;
 import com.codingshenanigans.shenanigans_bank.models.AccountStatus;
 import com.codingshenanigans.shenanigans_bank.models.AccountType;
+import com.codingshenanigans.shenanigans_bank.models.Transaction;
 import com.codingshenanigans.shenanigans_bank.repositories.AccountRepository;
+import com.codingshenanigans.shenanigans_bank.repositories.TransactionRepository;
 import com.codingshenanigans.shenanigans_bank.utils.TokenProvider;
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,17 @@ import java.util.List;
 @Service
 public class AccountService {
     private final AccountRepository accountRepository;
+    private final TransactionRepository transactionRepository;
     private final TokenProvider tokenProvider;
 
     @Autowired
-    public AccountService(AccountRepository accountRepository, TokenProvider tokenProvider) {
+    public AccountService(
+            AccountRepository accountRepository,
+            TransactionRepository transactionRepository,
+            TokenProvider tokenProvider
+    ) {
         this.accountRepository = accountRepository;
+        this.transactionRepository = transactionRepository;
         this.tokenProvider = tokenProvider;
     }
 
@@ -211,5 +219,39 @@ public class AccountService {
         }
 
         return accountRepository.withdraw(accountId, title, amount);
+    }
+
+    public List<Transaction> listTransactions(String authorizationHeader, Long accountId) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ApiException("Invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accessToken = authorizationHeader.substring(7);
+        Claims claims = tokenProvider.validateAccessToken(accessToken);
+        if (claims == null) {
+            throw new ApiException("Invalid access token", HttpStatus.UNAUTHORIZED);
+        }
+
+        Account account = accountRepository.findById(accountId);
+        if (account == null) {
+            throw new ApiException("The account was not found", HttpStatus.NOT_FOUND);
+        }
+
+        long userId;
+        try {
+            userId = Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new ApiException(
+                    "Failed to parse subject claim", HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        if (userId != account.userId()) {
+            throw new ApiException(
+                    "The user signed in does not own the account", HttpStatus.FORBIDDEN
+            );
+        }
+
+        return transactionRepository.list(accountId);
     }
 }
