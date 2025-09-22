@@ -89,7 +89,7 @@ public class AccountRepository {
 
         int rowsAffected = jdbcTemplate.update(query, AccountStatus.CLOSED.toString(), accountId);
         if (rowsAffected <= 0) {
-            throw new ApiException("Failed to update account", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("Failed to close account", HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         return findById(accountId);
