@@ -61,7 +61,7 @@ public class AccountRepository {
 
     /**
      * Finds an account by its id.
-     * @param id The id to search for.
+     * @param id The account id to search for.
      * @return The account object if found, null otherwise.
      */
     public Account findById(Long id) {
@@ -80,6 +80,26 @@ public class AccountRepository {
         }
     }
 
+    public Account close(Long accountId) {
+        String query = """
+            UPDATE accounts
+            SET status = ?
+            WHERE id = ?
+        """;
+
+        int rowsAffected = jdbcTemplate.update(query, AccountStatus.CLOSED.toString(), accountId);
+        if (rowsAffected <= 0) {
+            throw new ApiException("Failed to update account", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        return findById(accountId);
+    }
+
+    /**
+     * Gets all the accounts for a user id.
+     * @param userId The user id to search for.
+     * @return A list of account objects owned by the given user id.
+     */
     public List<Account> list(Long userId) {
         String query = """
             SELECT *
