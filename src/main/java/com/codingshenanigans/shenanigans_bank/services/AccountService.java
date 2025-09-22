@@ -170,4 +170,46 @@ public class AccountService {
 
         return accountRepository.deposit(accountId, title, amount);
     }
+
+    public Account withdraw(
+            String authorizationHeader, Long accountId, String title, BigDecimal amount
+    ) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new ApiException("Invalid Authorization header", HttpStatus.UNAUTHORIZED);
+        }
+
+        String accessToken = authorizationHeader.substring(7);
+        Claims claims = tokenProvider.validateAccessToken(accessToken);
+        if (claims == null) {
+            throw new ApiException("Invalid access token", HttpStatus.UNAUTHORIZED);
+        }
+
+        Account account = accountRepository.findById(accountId);
+        if (account == null) {
+            throw new ApiException("The account was not found", HttpStatus.NOT_FOUND);
+        }
+
+        long userId;
+        try {
+            userId = Long.parseLong(claims.getSubject());
+        } catch (NumberFormatException e) {
+            throw new ApiException(
+                    "Failed to parse subject claim", HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+
+        if (userId != account.userId()) {
+            throw new ApiException(
+                    "The user signed in does not own the account", HttpStatus.FORBIDDEN
+            );
+        }
+
+        if (account.balance().compareTo(amount) < 0) {
+            throw new ApiException(
+                    "The account does not have sufficient funds", HttpStatus.FORBIDDEN
+            );
+        }
+
+        return accountRepository.withdraw(accountId, title, amount);
+    }
 }

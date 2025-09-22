@@ -85,4 +85,19 @@ public class AccountController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/{accountId}/withdraw")
+    public ResponseEntity<AccountWithdrawResponse> withdraw(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long accountId,
+            @Valid @RequestBody AccountWithdrawRequest request
+    ) {
+        Account account = accountService.withdraw(
+                authorizationHeader, accountId, request.getTitle(), request.getAmount()
+        );
+
+        AccountWithdrawResponse response = new AccountWithdrawResponse(account);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

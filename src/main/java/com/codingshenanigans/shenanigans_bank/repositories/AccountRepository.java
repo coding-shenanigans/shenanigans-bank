@@ -162,4 +162,43 @@ public class AccountRepository {
 
         return findById(accountId);
     }
+
+    /**
+     * Withdraws the amount from the account.
+     * @param accountId The account id to withdraw the amount from.
+     * @param title The title for the withdrawal.
+     * @param amount The amount to withdraw.
+     * @return The updated account object.
+     */
+    public Account withdraw(Long accountId, String title, BigDecimal amount) {
+        String query = """
+            UPDATE accounts
+            SET balance = ?
+            WHERE id = ?
+        """;
+
+        Account account = findById(accountId);
+        BigDecimal negativeAmount = amount.multiply(new BigDecimal("-1"));
+        BigDecimal newBalance = account.balance().add(negativeAmount);
+
+        transactionTemplate.execute(status -> {
+            try {
+                int rowsAffected = jdbcTemplate.update(query, newBalance, accountId);
+                if (rowsAffected <= 0) {
+                    throw new ApiException(
+                            "Failed to withdraw the amount", HttpStatus.INTERNAL_SERVER_ERROR
+                    );
+                }
+
+                transactionRepository.create(accountId, title, negativeAmount, newBalance);
+
+                return null;
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                throw e;
+            }
+        });
+
+        return findById(accountId);
+    }
 }
