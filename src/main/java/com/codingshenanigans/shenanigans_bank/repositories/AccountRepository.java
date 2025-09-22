@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
@@ -20,11 +21,20 @@ import java.util.List;
 public class AccountRepository {
     private final JdbcTemplate jdbcTemplate;
     private final AccountRowMapper accountRowMapper;
+    private final TransactionRepository transactionRepository;
+    private final TransactionTemplate transactionTemplate;
 
     @Autowired
-    public AccountRepository(JdbcTemplate jdbcTemplate, AccountRowMapper accountRowMapper) {
+    public AccountRepository(
+            JdbcTemplate jdbcTemplate,
+            AccountRowMapper accountRowMapper,
+            TransactionRepository transactionRepository,
+            TransactionTemplate transactionTemplate
+    ) {
         this.jdbcTemplate = jdbcTemplate;
         this.accountRowMapper = accountRowMapper;
+        this.transactionRepository = transactionRepository;
+        this.transactionTemplate = transactionTemplate;
     }
 
     /**
@@ -113,5 +123,43 @@ public class AccountRepository {
         """;
 
         return jdbcTemplate.query(query, accountRowMapper, userId);
+    }
+
+    /**
+     * Deposits the amount into the account.
+     * @param accountId The account id to deposit the amount into.
+     * @param title The title for the deposit.
+     * @param amount The amount to deposit.
+     * @return The updated account object.
+     */
+    public Account deposit(Long accountId, String title, BigDecimal amount) {
+        String query = """
+            UPDATE accounts
+            SET balance = ?
+            WHERE id = ?
+        """;
+
+        Account account = findById(accountId);
+        BigDecimal newBalance = account.balance().add(amount);
+
+        transactionTemplate.execute(status -> {
+            try {
+                int rowsAffected = jdbcTemplate.update(query, newBalance, accountId);
+                if (rowsAffected <= 0) {
+                    throw new ApiException(
+                            "Failed to deposit the amount", HttpStatus.INTERNAL_SERVER_ERROR
+                    );
+                }
+
+                transactionRepository.create(accountId, title, amount, newBalance);
+
+                return null;
+            } catch (Exception e) {
+                status.setRollbackOnly();
+                throw e;
+            }
+        });
+
+        return findById(accountId);
     }
 }

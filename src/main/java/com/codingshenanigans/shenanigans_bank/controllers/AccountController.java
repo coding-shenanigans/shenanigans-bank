@@ -70,4 +70,19 @@ public class AccountController {
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    @PostMapping("/{accountId}/deposit")
+    public ResponseEntity<AccountDepositResponse> deposit(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long accountId,
+            @Valid @RequestBody AccountDepositRequest request
+    ) {
+        Account account = accountService.deposit(
+                authorizationHeader, accountId, request.getTitle(), request.getAmount()
+        );
+
+        AccountDepositResponse response = new AccountDepositResponse(account);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
