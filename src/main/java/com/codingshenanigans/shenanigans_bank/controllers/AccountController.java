@@ -1,9 +1,6 @@
 package com.codingshenanigans.shenanigans_bank.controllers;
 
-import com.codingshenanigans.shenanigans_bank.dtos.CloseAccountResponse;
-import com.codingshenanigans.shenanigans_bank.dtos.ListAccountsResponse;
-import com.codingshenanigans.shenanigans_bank.dtos.OpenAccountRequest;
-import com.codingshenanigans.shenanigans_bank.dtos.OpenAccountResponse;
+import com.codingshenanigans.shenanigans_bank.dtos.*;
 import com.codingshenanigans.shenanigans_bank.models.Account;
 import com.codingshenanigans.shenanigans_bank.services.AccountService;
 import jakarta.validation.Valid;
@@ -58,6 +55,18 @@ public class AccountController {
         List<Account> accounts = accountService.listAccounts(authorizationHeader);
 
         ListAccountsResponse response = new ListAccountsResponse(accounts);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/{accountId}")
+    public ResponseEntity<GetAccountResponse> getAccount(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long accountId
+    ) {
+        Account account = accountService.getAccount(authorizationHeader, accountId);
+
+        GetAccountResponse response = new GetAccountResponse(account);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
