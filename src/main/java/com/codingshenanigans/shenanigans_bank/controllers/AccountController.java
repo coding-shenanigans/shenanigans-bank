@@ -2,6 +2,7 @@ package com.codingshenanigans.shenanigans_bank.controllers;
 
 import com.codingshenanigans.shenanigans_bank.dtos.*;
 import com.codingshenanigans.shenanigans_bank.models.Account;
+import com.codingshenanigans.shenanigans_bank.models.Transaction;
 import com.codingshenanigans.shenanigans_bank.services.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,20 @@ public class AccountController {
         );
 
         AccountWithdrawResponse response = new AccountWithdrawResponse(account);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @GetMapping("/{accountId}/transactions")
+    public ResponseEntity<ListTransactionsResponse> listTransactions(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long accountId
+    ) {
+        List<Transaction> transactions = accountService.listTransactions(
+                authorizationHeader, accountId
+        );
+
+        ListTransactionsResponse response = new ListTransactionsResponse(transactions);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
