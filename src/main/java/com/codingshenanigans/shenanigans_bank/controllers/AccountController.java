@@ -1,5 +1,6 @@
 package com.codingshenanigans.shenanigans_bank.controllers;
 
+import com.codingshenanigans.shenanigans_bank.dtos.CloseAccountResponse;
 import com.codingshenanigans.shenanigans_bank.dtos.ListAccountsResponse;
 import com.codingshenanigans.shenanigans_bank.dtos.OpenAccountRequest;
 import com.codingshenanigans.shenanigans_bank.dtos.OpenAccountResponse;
@@ -36,6 +37,18 @@ public class AccountController {
         OpenAccountResponse response = new OpenAccountResponse(account);
 
         return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{accountId}/close")
+    public ResponseEntity<CloseAccountResponse> close(
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+            @PathVariable Long accountId
+            ) {
+        Account account = accountService.close(authorizationHeader, accountId);
+
+        CloseAccountResponse response = new CloseAccountResponse(account);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @GetMapping
