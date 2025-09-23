@@ -1,6 +1,6 @@
 # Shenanigans Bank
 
-An API implementation that simulates the basic functionalities of a bank.
+An API that simulates some basic functionalities of a bank.
 
 Design doc: https://docs.google.com/document/d/1IHVJ3YjF0wK9xh3exj78S7IKIXNZAvfz0QVVmE5itGI
 
@@ -69,6 +69,19 @@ CREATE TABLE IF NOT EXISTS transactions (
     updated_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
+
+# Check the status of the event scheduler.
+SHOW VARIABLES
+WHERE VARIABLE_NAME = 'event_scheduler';
+
+# Event to cleanup expired sessions.
+# Runs daily at 1AM.
+CREATE EVENT IF NOT EXISTS cleanup_sessions
+ON SCHEDULE EVERY 1 DAY
+STARTS '2025-09-23 01:00:00'
+DO
+  DELETE FROM sessions
+  WHERE updated_at < NOW() - INTERVAL 24 HOUR;
 ```
 
 ## Run Locally with Docker
