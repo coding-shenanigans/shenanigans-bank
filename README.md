@@ -70,18 +70,66 @@ CREATE TABLE IF NOT EXISTS transactions (
     FOREIGN KEY (account_id) REFERENCES accounts(id)
 );
 
-# Check the status of the event scheduler.
-SHOW VARIABLES
-WHERE VARIABLE_NAME = 'event_scheduler';
+-- Create stored procedure to apply interest payments.
+-- Cloud SQL Studio (the Cloud SQL query UI) doesn't support the DELIMITER commands.
+-- Removing the DELIMITER commands should work on Cloud SQL Studio.
+DELIMITER $$
 
-# Event to cleanup expired sessions.
-# Runs daily at 1AM.
+CREATE PROCEDURE apply_interest_to_savings()
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+    END;
+
+    START TRANSACTION;
+
+    CREATE TEMPORARY TABLE IF NOT EXISTS temp_interest AS (
+        SELECT
+            id AS account_id,
+            ROUND(balance * 0.0001, 4) AS interest_amount
+        FROM accounts
+        WHERE type = 'SAVINGS'
+    );
+
+    UPDATE accounts a
+    INNER JOIN temp_interest ti
+        ON a.id = ti.account_id
+    SET a.balance = a.balance + ti.interest_amount;
+
+    INSERT INTO transactions (account_id, title, amount, new_balance)
+    SELECT
+        a.id,
+        'Interest earned',
+        ti.interest_amount,
+        a.balance
+    FROM accounts a
+    INNER JOIN temp_interest ti
+        ON a.id = ti.account_id;
+
+    DROP TEMPORARY TABLE IF EXISTS temp_interest;
+
+    COMMIT;
+END;$$
+
+DELIMITER ;
+
+-- Event to cleanup expired sessions.
+-- Runs daily at 1AM.
 CREATE EVENT IF NOT EXISTS cleanup_sessions
 ON SCHEDULE EVERY 1 DAY
 STARTS '2025-09-23 01:00:00'
 DO
-  DELETE FROM sessions
-  WHERE updated_at < NOW() - INTERVAL 24 HOUR;
+    DELETE FROM sessions
+    WHERE updated_at < NOW() - INTERVAL 24 HOUR;
+
+-- Event to apply interest to savings accounts.
+-- Runs daily at 2AM.
+CREATE EVENT IF NOT EXISTS pay_interest
+ON SCHEDULE EVERY 1 DAY
+STARTS '2025-09-23 02:00:00'
+DO
+    CALL apply_interest_to_savings();
 ```
 
 ## Run Locally with Docker
